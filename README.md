@@ -11,6 +11,7 @@ Product ideas worth exploring. Each idea has a problem statement, existing solut
 | 1 | [AI Code Security Scanner](#1-ai-code-security-scanner) | Security / DevTools | Exploring |
 | 2 | [Workload Placement Intelligence](#2-workload-placement-intelligence) | Data Center / Infra | Exploring |
 | 3 | [Hardware Failure Prediction + Auto-Drain](#3-hardware-failure-prediction--auto-drain) | Data Center / Infra | Exploring |
+| 4 | [Vision-Based Auto-Tracking Spotlight](#4-vision-based-auto-tracking-spotlight) | Hardware / Live Events / Security | Exploring |
 
 ---
 
@@ -126,6 +127,93 @@ Data centers react to hardware failures. A disk dies, a DIMM fails, a NIC degrad
 - Failure model improves with fleet size (data flywheel)
 - Tie-in with Workload Placement (Idea #2) — hardware risk is an input to placement decisions
 - Clear, measurable ROI: downtime hours averted × cost per hour of downtime
+
+---
+
+---
+
+## 4. Vision-Based Auto-Tracking Spotlight
+
+**Tagline:** A spotlight that follows a person automatically — natural, smooth, real-time. No operator needed.
+
+### Problem
+In live shows (concerts, theater, corporate events, sports), following a performer or speaker with a spotlight requires a dedicated human operator — or an expensive motorized fixture controlled manually. The result is either high labor cost, operator fatigue causing lag and jerky movement, or lights that simply stay static.
+
+For security, PTZ (pan-tilt-zoom) cameras track people but lights do not. A space that needs to illuminate a specific person or intruder — a dark warehouse, a stage perimeter, a large outdoor venue — has no intelligent lighting option.
+
+### What Exists
+
+**Live events:**
+- **Follow spot operators** — standard solution. Human sits at a manual spotlight, follows the performer. Labor-intensive, skill-dependent, expensive for long shows.
+- **Robert Juliat, Strong, Clay Paky** — high-end motorized follow spots. Remote-controlled by an operator via joystick. Still requires a human, just positioned differently.
+- **Robe RoboSpot** — closest to this idea. A camera-assisted remote follow spot system. Operator still controls it, camera just helps with framing. ~$15–30K per unit. Sold to large touring productions.
+- **MA Lighting / grandMA consoles** — can automate moving heads along pre-programmed paths, but no real-time human tracking.
+
+**Computer vision / robotics:**
+- **PTZ camera tracking** (Lumens, PTZOptics, Obsbot) — vision-based auto-tracking exists for cameras. They track faces/bodies. But these are cameras, not lights.
+- **Spot robots with lights** — Boston Dynamics Spot has been used at events with mounted lights but it's a $75K robot, not a lighting product.
+- **Research prototypes** — academic papers exist on vision-guided robotic lighting, none productized at scale.
+
+### The Gap
+- **No affordable, standalone auto-tracking spotlight exists** — the gap between a $200 LED moving head and a $25K RoboSpot is completely empty
+- PTZ camera tracking algorithms are proven and cheap — nobody has applied them to control a light beam instead of a camera lens
+- "Natural movement" is unsolved — existing motorized fixtures move in hard, mechanical steps. A good follow spot operator adds anticipation, smooth arcs, and body-language prediction. No product does this.
+- Dual use (events + security) means two addressable markets with one hardware platform
+
+### Product Vision
+
+**Hardware:**
+- Pan-tilt motorized mount (2-axis, high torque for heavy fixtures) with sub-degree precision
+- Mounted wide-angle camera for scene capture (separate from the light beam)
+- Edge compute module (Jetson Nano / Orin equivalent) running inference on-device
+- Works with standard DMX/Art-Net lighting fixtures — doesn't require proprietary light heads
+- Optional: laser rangefinder for depth-aware beam focus adjustment
+
+**Vision / Tracking:**
+- Person detection + pose estimation (MediaPipe, YOLOv8-pose) running at 30fps+
+- Subject selection: tap-to-lock on a person via tablet app, or automatic "most active person" heuristic
+- **Predictive smoothing** — model the subject's movement trajectory, not just current position; anticipate direction changes
+- Multi-subject handoff — when tracking a group, smoothly transition between subjects on cue
+- Low-light optimization — the camera needs to work even when the scene is dark except for the spotlight itself (IR illuminator on the camera, separate from the main beam)
+
+**Control:**
+- Tablet/phone app — tap subject to lock, adjust tracking aggressiveness, beam width, speed limits
+- DMX integration — lighting board operators can override or blend with automation
+- Scene memory — "follow whoever is at the podium" zone-based logic for corporate/theater use
+
+**Security variant:**
+- Motion-triggered activation (PIR or camera motion zone)
+- Flood beam instead of spot — illuminate entire area around detected person
+- Integration with VMS (video management systems) via ONVIF or RTSP
+- Alert + illuminate simultaneously
+
+### Dual Market
+
+| | Live Events | Security |
+|---|---|---|
+| **Buyer** | Event rental companies, venues, touring productions | Commercial security integrators, facility managers |
+| **Use case** | Follow performer, speaker, athlete | Illuminate intruder, deter trespassers |
+| **Key feature** | Smooth natural tracking, multi-subject | Motion trigger, alarm integration, flood mode |
+| **Price tolerance** | $2K–8K per unit | $1K–3K per unit |
+| **Distribution** | AV rental houses, lighting dealers | Security system integrators |
+
+### Technical Risks & Mitigations
+- **Latency** — tracking lag makes the light feel mechanical. Mitigation: predictive model + optimize inference pipeline to <50ms end-to-end
+- **Low-light camera performance** — tracking in dark environments where only the spotlight illuminates the subject. Mitigation: dedicated IR camera array, separate from beam
+- **Mechanical precision** — cheap steppers have backlash and vibration. Mitigation: use BLDC motors with encoders, same as camera gimbal industry
+- **Subject loss** — performer exits frame, reacquisition must be smooth. Mitigation: re-ID via pose + appearance embedding
+
+### Moat
+- The smoothing/prediction algorithm is the core IP — this is what separates it from "servo + YOLO"
+- Hardware + software as a system — hard to replicate with off-the-shelf parts
+- Network effects in rental ecosystem — once a few large AV rental houses standardize on it, it becomes the default
+
+### Build Path
+1. Proof of concept — off-the-shelf PTZ mount + Jetson Orin + MediaPipe person tracking controlling a DMX moving head
+2. Validate tracking smoothness and latency in live conditions
+3. Custom mount design for production (weight, torque, weather resistance for outdoor)
+4. Tablet control app
+5. Pilot with 2–3 AV rental companies or corporate venues
 
 ---
 
