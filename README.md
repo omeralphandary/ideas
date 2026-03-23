@@ -12,6 +12,7 @@ Product ideas worth exploring. Each idea has a problem statement, existing solut
 | 2 | [Workload Placement Intelligence](#2-workload-placement-intelligence) | Data Center / Infra | Exploring |
 | 3 | [Hardware Failure Prediction + Auto-Drain](#3-hardware-failure-prediction--auto-drain) | Data Center / Infra | Exploring |
 | 4 | [Vision-Based Auto-Tracking Spotlight](#4-vision-based-auto-tracking-spotlight) | Hardware / Live Events / Security | Exploring |
+| 5 | [PLC Code Migration Tool — Studio 5000 to TIA Portal](#5-plc-code-migration-tool--studio-5000-to-tia-portal) | Industrial Automation / OT | Exploring |
 
 ---
 
@@ -214,6 +215,116 @@ For security, PTZ (pan-tilt-zoom) cameras track people but lights do not. A spac
 3. Custom mount design for production (weight, torque, weather resistance for outdoor)
 4. Tablet control app
 5. Pilot with 2–3 AV rental companies or corporate venues
+
+---
+
+## 5. PLC Code Migration Tool — Studio 5000 to TIA Portal
+
+**Tagline:** Automated translation of Allen-Bradley Ethernet/IP programs to Siemens TIA Portal — weeks of manual work in minutes.
+
+### Problem
+Manufacturing plants and system integrators frequently need to migrate PLC programs from Rockwell Automation's Studio 5000 (Allen-Bradley, Ethernet/IP) to Siemens TIA Portal (S7-1200/1500, PROFINET) — or vice versa. Reasons include:
+
+- Vendor consolidation (standardizing on Siemens or Rockwell across a plant)
+- Rockwell licensing costs pushing mid-market manufacturers toward Siemens
+- Acquisition/merger where two plants run different platforms
+- End-of-life hardware forcing a platform migration
+- European manufacturers (Siemens-dominant) acquiring US facilities (Rockwell-dominant)
+
+Today, this migration is done **entirely by hand**. A skilled controls engineer re-reads every rung of ladder logic, every function block, every UDT, and rewrites it manually in the target environment. A mid-size program (500–2000 rungs) takes 4–12 weeks. A large program can take 6+ months. At $150–300/hr for a specialist, this is a $50K–500K project every time.
+
+### What Exists
+- **Nothing purpose-built.** There is no commercial tool that translates Studio 5000 `.ACD` files to TIA Portal `.ap__` projects.
+- **Generic IEC 61131-3 converters** — tools like PLCopen XML exchange exist but require both platforms to export to a neutral format. TIA Portal has limited PLCopen XML import; Studio 5000 has almost none. In practice these don't work.
+- **Consultancies** — system integrators (Grantek, Plex, Avanceon) do these migrations as billable projects. They have internal checklists, not tools.
+- **Siemens' own migration guides** — PDF documentation mapping concepts across platforms. Manual, not automated.
+- **Rockwell ↔ Siemens rivalry** — neither vendor has any incentive to build a migration tool away from their own platform.
+
+### The Gap
+This is a pure tooling gap. The information to build this exists:
+- Studio 5000 `.ACD` files are XML-based and fully parseable (Rockwell publishes the schema partially; the rest is reverse-engineered and well-documented in the community)
+- TIA Portal has an **Openness API** (TIA Portal Openness) — a COM-based automation API that allows programmatic creation of blocks, tags, networks, and hardware config
+- Both platforms implement subsets of IEC 61131-3, so there is a logical mapping between constructs
+- The conceptual translation map is known — it just hasn't been automated
+
+### Core Translation Challenges
+
+| Studio 5000 Concept | TIA Portal Equivalent | Notes |
+|---|---|---|
+| Ladder Diagram (LD) rungs | LAD networks | 1:1 in structure, instruction mnemonics differ |
+| Add-On Instructions (AOIs) | Function Blocks (FBs) | AOI interface → FB interface, logic inside translates |
+| User-Defined Types (UDTs) | PLC Data Types (PDTs) | Direct mapping, naming conventions differ |
+| Tags (controller-scoped) | DB tags / global DBs | Rockwell flat namespace vs Siemens structured DBs |
+| Program/Routine hierarchy | OB / FC / FB hierarchy | Execution model differs — needs careful mapping |
+| Produced/Consumed Tags | PUT/GET or I-Device | Ethernet/IP multicast vs PROFINET equivalents |
+| Message Instructions (MSG) | S7 communication FBs | Protocol translation, not just syntax |
+| Motion (Kinetix / CIP Motion) | Sinamics / S120 drive config | Deep domain, separate module |
+| Safety (GuardLogix) | F-CPU / F-DB | Safety-certified code — requires human review regardless |
+| FactoryTalk HMI tags | WinCC tag mapping | Out of scope for v1 but needed eventually |
+
+### Product Vision
+
+**Phase 1 — Core Logic Translator (v1)**
+- Parse `.ACD` file → extract all programs, routines, AOIs, UDTs, tags, I/O config
+- Translate Ladder Logic rungs instruction-by-instruction to TIA Portal LAD
+- Translate UDTs → PLC Data Types
+- Translate AOIs → Function Blocks
+- Generate TIA Portal project via Openness API
+- Output: importable `.ap__` project + translation report (what was auto-translated, what needs manual review, confidence score per block)
+
+**Phase 2 — Network & I/O Config**
+- Map Ethernet/IP device config (scanlist, EDS files) → PROFINET device config (GSDML files)
+- Generate hardware config in TIA Portal for equivalent Siemens I/O modules
+- Flag devices with no direct Siemens equivalent
+
+**Phase 3 — HMI Tag Migration**
+- Extract FactoryTalk View tag database → WinCC tag mapping
+- Flag screen objects that reference translated tags
+
+**What it does NOT do (and is honest about):**
+- Safety-rated code (GuardLogix → F-CPU) — outputs a draft + flags every block for mandatory human review
+- Motion control — too hardware-specific, out of scope
+- Runtime behavior equivalence verification — outputs a test checklist, not a simulation
+
+### Workflow
+```
+Engineer uploads .ACD file
+        ↓
+Parser extracts: programs, routines, AOIs, UDTs, tags, I/O config
+        ↓
+Translation engine maps each construct to TIA Portal equivalent
+        ↓
+Confidence scoring — HIGH (direct mapping) / MEDIUM (needs review) / LOW (no equivalent, flagged)
+        ↓
+TIA Portal Openness API generates the project file
+        ↓
+Translation report: coverage %, flagged items, recommended manual review list
+        ↓
+Engineer downloads .ap__ project + report, opens in TIA Portal, reviews flagged items
+```
+
+### Business Model
+- **Per-project pricing** — pay per migration based on program size (tag count / rung count). $500–5,000 per project depending on size. Far cheaper than $50K+ manual migration.
+- **Annual license** — for system integrators who do this regularly. $10–30K/yr.
+- **Professional services add-on** — review of flagged items, validation support.
+- **Reverse direction** — TIA Portal → Studio 5000 is the same tool, different direction. Doubles the addressable market.
+
+### Market
+- ~300,000 active Studio 5000 installations globally (Rockwell estimate)
+- Migration projects are triggered by hardware EOL cycles (5–10 year cadence) and M&A
+- Primary buyers: system integrators, large manufacturers (automotive, food & bev, pharma, oil & gas)
+- No dominant player — this market is served by billable consulting hours, not software
+
+### Moat
+- First-mover in a niche nobody has productized — high switching cost once a workflow is established
+- Quality of the translation engine improves with each migration (edge case library)
+- Integrator partnerships — become the tool that Grantek, Plex, and Avanceon use internally
+- Expanding to other platform pairs (Mitsubishi GX Works ↔ TIA Portal, Schneider Unity Pro ↔ Studio 5000) using the same architecture
+
+### Key Technical Resources
+- Studio 5000 `.ACD` format: XML-based, community-documented (L5X export is the cleaner path — Studio 5000 can export to `.L5X` which is fully documented XML)
+- TIA Portal Openness API: officially supported by Siemens, COM-based, full documentation available
+- IEC 61131-3 standard: the common language both partially implement
 
 ---
 
