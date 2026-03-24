@@ -13,6 +13,7 @@ Product ideas worth exploring. Each idea has a problem statement, existing solut
 | 3 | [Hardware Failure Prediction + Auto-Drain](#3-hardware-failure-prediction--auto-drain) | Data Center / Infra | Exploring |
 | 4 | [Vision-Based Auto-Tracking Spotlight](#4-vision-based-auto-tracking-spotlight) | Hardware / Live Events / Security | Exploring |
 | 5 | [PLC Code Migration Tool — Studio 5000 to TIA Portal](#5-plc-code-migration-tool--studio-5000-to-tia-portal) | Industrial Automation / OT | Exploring |
+| 6 | [Universal Predictive Maintenance SaaS](#6-universal-predictive-maintenance-saas) | Industrial IoT / Operations | Exploring |
 
 ---
 
@@ -345,3 +346,57 @@ Unified Dashboard  ──→  Fleet health + cost + SLA status
 ```
 
 Idea #1 (AI Code Security) is independent — different buyer (developer vs. infra ops), different GTM.
+
+---
+
+## 6. Universal Predictive Maintenance SaaS
+
+**Tagline:** Deploy on any machine, connect any sensor — get a trained failure prediction model per asset in weeks, not months.
+
+### Problem
+Predictive maintenance tooling is fragmented by industry, sensor type, and vendor. Enterprise platforms (Aspentech, IBM Maximo, Siemens MindSphere) require 6-month integration projects and a system integrator. Most tools are tied to specific sensor hardware or specific asset types. Mid-market operators — 3PL warehouses, food plants, FM companies — have no accessible option.
+
+### What Exists
+- **Aspentech Mtell** — ML-based PdM, strong in oil & gas. Heavy, expensive, long deployment.
+- **IBM Maximo Monitor** — PdM on top of asset management. IT-heavy, ERP-attached.
+- **Siemens MindSphere** — IIoT platform with PdM modules. Works well only within Siemens hardware ecosystem.
+- **Augury** — vibration + ultrasound sensors for rotating machinery. Hardware-bundled, not sensor-agnostic.
+- **SparkCognition / Uptake** — industrial ML, but services-heavy and enterprise-only.
+- **Seeq** — time-series analytics, strong in pharma/chemicals. Analytics tool, not a PdM product.
+
+### The Gap
+- No sensor-agnostic, self-training SaaS a mid-market operator can deploy without a system integrator
+- Everyone is either hardware-bundled, ERP-attached, or requires custom integration work
+- Cold-start problem unsolved in products: most tools need labeled failure data upfront — mid-market operators have none
+- Brownfield deployment (no existing sensors, no historian) is treated as out-of-scope by every player
+
+### Product Vision
+- **Edge agent** — lightweight, deploys on an industrial PC or Raspberry Pi; connects via OPC-UA, Modbus TCP/RTU, BACnet, MQTT, or direct sensor input
+- **Brownfield kit** — clip-on accelerometers, CT clamps on power cables, surface-mount temperature sensors; non-invasive, no machine modification, no shutdown
+- **Signal-agnostic ingestion** — ingest any time-series signal regardless of source or type
+- **Auto model training** — one model per asset × signal type; starts unsupervised (anomaly detection, no labels needed), shifts to supervised as operators confirm/reject alerts
+- **Edge inference** — trained model pushed to edge agent; works offline, low latency
+- **Dashboard** — asset health map, anomaly timeline, maintenance calendar, alert routing (PagerDuty, email, SMS)
+
+### Target Industries (MVP)
+1. **Logistics & Warehousing** — conveyors, sortation systems, AGVs; homogeneous assets, clear downtime cost
+2. **Facilities Management** — chillers, AHUs, elevators, pumps across mixed-vendor commercial buildings; FM companies (CBRE, JLL) are natural channel partners
+3. **Food & Beverage Manufacturing** — compressors, filling lines, refrigeration; HACCP compliance makes downtime a regulatory event, ROI pitch is simple
+
+### ML Stack
+- **Anomaly detection (cold start)**: LSTM Autoencoder — learns normal signal, no labels required
+- **Classification (once labeled data exists)**: LightGBM on engineered features — fast, interpretable
+- **RUL prediction**: Temporal Convolutional Network (TCN)
+- **Zero-shot bootstrap**: Amazon Chronos or Nixtla TimeGPT pretrained time-series foundation models
+- **Online learning**: River — incremental updates without full retraining
+
+### Business Model
+- **Per-node SaaS** — monthly fee per monitored asset; $50–150/node/mo depending on tier
+- **Starter kit** — edge agent + brownfield sensor kit as hardware bundle; removes deployment friction
+- **Channel partners** — FM companies and 3PL operators as resellers; they bring the install base
+
+### Moat
+- Signal-agnostic model training is the core differentiator — not locked to a sensor vendor or asset type
+- Data flywheel: failure patterns across a fleet improve models for every customer on the same asset type
+- Brownfield kit removes the #1 objection ("we'd need to install sensors first")
+- Land in one asset class per customer, expand to the full facility
