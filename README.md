@@ -14,6 +14,7 @@ Product ideas worth exploring. Each idea has a problem statement, existing solut
 | 4 | [Vision-Based Auto-Tracking Spotlight](#4-vision-based-auto-tracking-spotlight) | Hardware / Live Events / Security | Exploring |
 | 5 | [PLC Code Migration Tool — Studio 5000 to TIA Portal](#5-plc-code-migration-tool--studio-5000-to-tia-portal) | Industrial Automation / OT | Exploring |
 | 6 | [Universal Predictive Maintenance SaaS](#6-universal-predictive-maintenance-saas) | Industrial IoT / Operations | Exploring |
+| 7 | [Vision-Based Industrial & Logistics Intelligence](#7-vision-based-industrial--logistics-intelligence) | Vision / Industrial / Logistics | Exploring |
 
 ---
 
@@ -400,3 +401,77 @@ Predictive maintenance tooling is fragmented by industry, sensor type, and vendo
 - Data flywheel: failure patterns across a fleet improve models for every customer on the same asset type
 - Brownfield kit removes the #1 objection ("we'd need to install sensors first")
 - Land in one asset class per customer, expand to the full facility
+
+---
+
+## 7. Vision-Based Industrial & Logistics Intelligence
+
+A collection of six related product concepts using computer vision — from foundation models to high-speed cameras to existing CCTV infrastructure — to solve operational problems in industrial and logistics environments that currently have no good solution.
+
+---
+
+### 7.1 Video-Based Vibration Analysis
+
+**Tagline:** Replace the accelerometer with a camera.
+
+A high-fps camera pointed at rotating machinery extracts full vibration frequency signatures — the same bearing fault frequencies a contact accelerometer would capture — from 2 meters away, non-contact. One camera monitors multiple assets simultaneously. No sensor mounting, no wiring, no access to the machine required.
+
+Based on Eulerian Video Magnification principles (MIT research). The gap: nobody has productized this for industrial PdM. The moat is the signal processing pipeline that extracts clean frequency data from video — harder than it looks, and once built, non-replicable quickly.
+
+---
+
+### 7.2 VLM-Powered Universal Inspection
+
+**Tagline:** Point a camera at anything. Get an inspection report.
+
+Foundation vision models (GPT-4V, Gemini, Claude Vision) understand what industrial assets look like and what degradation looks like — without custom training per asset type. Point any camera at any asset: motor, pipe joint, structural beam, conveyor belt, weld. The system identifies the asset, describes its condition, flags anomalies, and auto-generates a timestamped structured report.
+
+Tracks changes over time: "this corrosion patch was 2cm on Jan 5, it's 5cm today." Replaces manual inspection walks with continuous or periodic automated inspection across any industry.
+
+The old wave: custom classifier per defect type, 10,000 labeled images, 6-month deployment. This wave: zero-shot, any asset, any defect, natural language output. Most industrial inspection companies haven't adapted yet.
+
+---
+
+### 7.3 Loading Dock Damage Intelligence
+
+**Tagline:** Automatic evidence chain for every shipment that touches your dock.
+
+Fixed cameras at dock doors capture condition of every truck exterior, trailer interior, pallet, and package on arrival and departure. AI flags damage and generates a timestamped condition report automatically — no behavior change required from dock workers.
+
+Damage disputes between shipper, carrier, and recipient currently cost the logistics industry billions annually and are almost always unresolved because there is no evidence. One resolved dispute pays for months of subscription. Every warehouse has dock doors. No affordable SaaS product does this today.
+
+---
+
+### 7.4 Operational Intelligence from Existing Security Footage
+
+**Tagline:** Every facility already has cameras running 24/7. Nobody is reading them.
+
+Every factory, warehouse, port, and mine has CCTV infrastructure — running continuously, watched only for security events, generating terabytes of untapped operational data daily. Pure software that connects to existing NVRs and extracts PdM signals, throughput patterns, bottlenecks, anomalies, and utilization metrics from footage already running.
+
+No new hardware. No installation project. Go-to-market is "connect to your existing system" not "buy our sensors." Disruptive because it monetizes sunk-cost infrastructure the customer already paid for.
+
+---
+
+### 7.5 CNC Cutting Tool Wear Prediction
+
+**Tagline:** See tool wear happening — before the part is scrapped.
+
+High-speed camera watching the cutting zone detects micro-wear developing on tool edges during active machining in real-time. Current practice: replace tools on fixed intervals (wasteful) or after dimensional drift causes scrap (expensive, sometimes dangerous). Vision catches wear as it develops and predicts exactly when the tool will produce out-of-spec parts.
+
+Connects tool condition directly to part quality — not just "tool is worn" but "this tool will cause a reject in ~35 minutes, swap it at next cycle." No comparable vision product exists for this specific problem.
+
+---
+
+### 7.6 Physical Demand Signal for Supply Chains
+
+**Tagline:** See real consumption before it becomes an order.
+
+Cameras at manufacturing stations and warehouse pick faces monitor actual depletion of parts bins and inventory in real-time — visual consumption velocity as it physically happens. This signal is fed upstream to suppliers continuously: not order-based, not forecast-based, actual physical reality.
+
+Eliminates the bullwhip effect — the inventory oscillation that propagates through supply chains because each tier reacts to orders rather than real consumption. Vision becomes the demand sensing layer that nobody has built. High value for suppliers with long lead times and customers with high mix, variable demand.
+
+---
+
+### Common Thread
+
+All six share the same underlying shift: vision AI moving from periodic human inspection to continuous automated intelligence. The enabling factors — cheap edge inference, VLMs that reason zero-shot, high-fps cameras under $500 — all crossed viability thresholds in the last 18–24 months. The industrial world hasn't caught up yet.
